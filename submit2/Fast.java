@@ -20,10 +20,17 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 public class Fast {
- 
+    
+   private static double convnegslope(double slope) {
+        if( slope == Double.NEGATIVE_INFINITY){
+            return -slope;
+        }
+        return slope;
+   }
+
    public static void main(String[] args) {
 
-   	    String fnm = args[0];
+        String fnm = args[0];
         In exp1 = new In(fnm);
         int[] xx  = exp1.readAllInts();
         Point[] pointsarr = new Point[xx[0]];
@@ -32,80 +39,79 @@ public class Fast {
         int count = 0;
         // Reading all the points from a file
         for (int i = 1; i < xx.length; i = i+2) {
-         	pointsarr[count] = new Point(xx[i], xx[i+1]);
-        	pointsorig[count] = new Point(xx[i], xx[i+1]);
-        	count += 1;
+            pointsarr[count] = new Point(xx[i], xx[i+1]);
+            count += 1;
         }
 
+    Arrays.sort(pointsarr);
+    for( int i = 0; i < pointsarr.length; i++)
+      pointsorig[i] = pointsarr[i];
 
- 		StdDraw.setXscale(0, 32768); 
+        StdDraw.setXscale(0, 32768); 
         StdDraw.setYscale(0, 32768);
- 		for (int i = 0; i < pointsorig.length; i++) {
- 			Point px = pointsorig[i];
-			Comparator slopeComparator =  px.SLOPE_ORDER;
- 
-        	Arrays.sort(pointsarr,  slopeComparator);
+        for (int i = 0; i < pointsorig.length; i++) {
+            Point px = pointsorig[i];
+            px.draw();
+            Comparator slopeComparator =  px.SLOPE_ORDER;
+            //StdOut.printf("Comparing for %s\n", px);
 
-        	// Find slopes made from px to all other points
-        	double []slopetopx = new double [pointsorig.length];
+              // Copying the Already Sorted Array
+            for( int cpidx = 0; cpidx < pointsorig.length; cpidx++)
+                pointsarr[cpidx] = pointsorig[cpidx];
 
-         	int curlidx = 0;
-        	int curridx = 0;
+                 
+            Arrays.sort(pointsarr,  slopeComparator);
+            
+            //for (int ll =0; ll < pointsarr.length; ll++)
+                //StdOut.printf("Comparing from px %s to %s is %f\n", px, pointsarr[ll], px.slopeTo(pointsarr[ll]));
+             
+            // Find slopes made from px to all other points
+            double []slopetopx = new double [pointsorig.length];
+
+            int curlidx = 0;
+            int curridx = 0;
   
-        	double curslope = Double.NEGATIVE_INFINITY;
-        	for (int j = 0; j < pointsorig.length; j++) {
-        		slopetopx[j] = px.slopeTo(pointsarr[j]);
-        		px.draw();
-  
-        		if ((curslope != slopetopx[j]) ||  (j == pointsorig.length-1)) {
-        			if  ((curslope == slopetopx[j]) && (j == pointsorig.length-1))  curridx++;
+            double curslope = Double.NEGATIVE_INFINITY;
+            for (int j = 0; j < pointsorig.length; j++) {
+                slopetopx[j] = px.slopeTo(pointsarr[j]);
+                if ( slopetopx[j]  == Double.NEGATIVE_INFINITY )  slopetopx[j] = -slopetopx[j];
+                
+                if ((curslope != slopetopx[j]) ||  (j == pointsorig.length-1)) {
+                    if  ((curslope == slopetopx[j]) && (j == pointsorig.length-1))  curridx++;
 
-        			int reqdelta = 2;
-        			if (curslope ==  Double.NEGATIVE_INFINITY)  reqdelta = 3;
+                    int reqdelta = 2;
+                    if (curslope ==  Double.NEGATIVE_INFINITY || curslope == Double.POSITIVE_INFINITY)  reqdelta = 3;
+                    //StdOut.printf( " Point i %d, curlidx %d curridx %d reqdelta %d %d\n", i, curlidx, curridx, reqdelta, px.compareTo(pointsarr[curlidx]) );
 
-        			if (curridx - curlidx >= reqdelta) {
-        			// Points arr from curlidx to curridx represents collinear points
-        			// Sort the Array from pointsarr[curlidx] to  pointsarr[curridx]
-         				int cN = curridx-curlidx + 2;
-						if (curslope ==  Double.NEGATIVE_INFINITY)  cN = curridx-curlidx + 1;
-						Point[] copypointsarr = new Point[cN]; 
+                    if (curridx - curlidx >= reqdelta) {
+                    // Points arr from curlidx to curridx represents collinear points
+                        if (px.compareTo(pointsarr[curlidx]) <= 0) {
+                            StdOut.printf("%s -> ", px);
+                            for (int idx = curlidx; idx < curridx; idx++) {
+                                StdOut.printf("%s -> ", pointsarr[idx]);
+                            }
+                            StdOut.printf("%s\n", pointsarr[curridx]);
+                  
+                            px.drawTo(pointsarr[curridx]);
+                        }
+                        curlidx = j;
+                        curridx = j;
 
-						int countx = 0;
-						copypointsarr[countx++] = px;
-						for (int l = curlidx; l <= curridx; l++) {
-							if (px.compareTo(pointsarr[l]) != 0) {
-								copypointsarr[countx++] = pointsarr[l];
-							}
-						}
- 
-	        			Arrays.sort(copypointsarr);
- 	        			if (px.compareTo(copypointsarr[0]) == 0) {
-  	        				for (int idx = 0; idx < copypointsarr.length-1; idx++) {
-        						copypointsarr[idx].drawTo(copypointsarr[idx+1]);
-        						StdOut.printf("%s -> ", copypointsarr[idx]);
-        					}
-         					StdOut.printf("%s\n", copypointsarr[ copypointsarr.length-1]);
- 	        			}
-        				curlidx = j;
-        				curridx = j;
+                    } else {
+                        curlidx = j;
+                        curridx = j;
+                    }
+                }  
 
-         			} else {
-        				curlidx = j;
-        				curridx = j;
-        			}
-         		}  
-
-        		if (curslope == slopetopx[j]) {
-        			curridx = j;
-        		}
-        		curslope = slopetopx[j];
-        		// StdOut.printf( "After curlidx = %d curridx = %d curslope %f\n", curlidx, curridx, curslope);
-         	}
+                if (curslope == slopetopx[j]) {
+                    curridx = j;
+                }
+                curslope = slopetopx[j];
+                // StdOut.printf( "After curlidx = %d curridx = %d curslope %f\n", curlidx, curridx, curslope);
+            }
 
 
          }
-  		
-
          
     }
 }

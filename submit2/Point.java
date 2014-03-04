@@ -53,7 +53,8 @@ public class Point implements Comparable<Point> {
         if (that.x == x) {
         	//StdOut.printf( "SlopeLog Point x (%s) Point Y (%s)\n", this.toString(), that.toString());
         	if (y > that.y ) return Double.POSITIVE_INFINITY;
-        	return Double.NEGATIVE_INFINITY;
+        	if (y <= that.y ) return Double.NEGATIVE_INFINITY;
+
         }
         return ((double) (y - that.y))/((double) (x - that.x ));
     }
@@ -85,6 +86,9 @@ public class Point implements Comparable<Point> {
 	private static int slopecompare(Point px, Point py, Point pz) {
 		double fxy = px.slopeTo(py);
 		double fxz = px.slopeTo(pz);
+        if (fxy ==  Double.NEGATIVE_INFINITY) fxy = -fxy;
+        if (fxz ==  Double.NEGATIVE_INFINITY) fxz = -fxz;
+
 		boolean fxyisinf = (fxy ==  Double.POSITIVE_INFINITY) || (fxy ==  Double.NEGATIVE_INFINITY);
 		boolean fxzisinf = (fxz ==  Double.POSITIVE_INFINITY) || (fxz ==  Double.NEGATIVE_INFINITY);
 		 
